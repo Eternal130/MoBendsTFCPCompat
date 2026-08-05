@@ -6,20 +6,22 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 /**
- * Common (server) proxy. The Mo'Bends/TFC+ rendering integration is client-only, so this is a
- * no-op on the server. The client proxy overrides preInit to wire up the compat handler.
+ * Common (server) proxy. The Mo'Bends/TFC+ integration is entirely client-side (rendering), so
+ * this is a no-op on a dedicated server. The client proxy logs whether both target mods are
+ * present so users can spot missing-dependency installs.
  */
 public class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
-        if (Loader.isModLoaded(CompatInitializer.MODID_MOBENDS)
-            && Loader.isModLoaded(CompatInitializer.MODID_TFCP)) {
-            MoBendsTFCPCompat.LOG.info("MoBends TFCP Compat: both mods detected on server side (no-op).");
+        boolean mobends = Loader.isModLoaded(MoBendsTFCPCompat.MODID_MOBENDS);
+        boolean tfcp = Loader.isModLoaded(MoBendsTFCPCompat.MODID_TFCP);
+        if (mobends && tfcp) {
+            MoBendsTFCPCompat.LOG.info("MoBends TFCP Compat: both mods detected on server (no-op).");
         } else {
             MoBendsTFCPCompat.LOG.info(
-                "MoBends TFCP Compat: inactive (mobends={}, tfcp={}).",
-                Loader.isModLoaded(CompatInitializer.MODID_MOBENDS),
-                Loader.isModLoaded(CompatInitializer.MODID_TFCP));
+                "MoBends TFCP Compat: inactive (mobends={}, tfcp={}). Both mods required for the fix.",
+                mobends,
+                tfcp);
         }
     }
 
