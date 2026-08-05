@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8.3-GTNH",
+  "package": "com.eternal130.mobends_tfcp_compat.mixin",
+  "refmap": "mixins.mobends_tfcp_compat.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinRenderClothing"
+  ],
+  "injectors": {
+    "defaultRequire": 1,
+    "maxShiftBy": 2
+  }
+}
