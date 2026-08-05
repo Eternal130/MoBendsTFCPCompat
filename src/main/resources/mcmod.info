@@ -1,0 +1,21 @@
+{
+    "modListVersion": 2,
+    "modList": [{
+        "modid": "${modId}",
+        "name": "${modName}",
+        "description": "Compatibility layer between Mo'Bends and TerraFirmaCraft Plus. Fixes clothing/body separation when walking by applying Mo'Bends' body transform to TFC+ clothing rendering.",
+        "version": "${modVersion}",
+        "mcversion": "${minecraftVersion}",
+        "url": "",
+        "updateUrl": "",
+        "authorList": ["Eternal130"],
+        "credits": "Mo'Bends by Astryxion; TFC+ by the TFC+ team.",
+        "logoFile": "",
+        "screenshots": [],
+        "parent": "",
+        "requiredMods": [],
+        "dependencies": [],
+        "dependants": [],
+        "useDependencyInformation": false
+    }]
+}
