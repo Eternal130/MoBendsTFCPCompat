@@ -1,70 +1,70 @@
 package com.eternal130.mobends_tfcp_compat;
 
 import net.gobbob.mobends.client.model.entity.ModelBendsPlayer;
-import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 
 import org.lwjgl.opengl.GL11;
 
 /**
- * Replays Mo'Bends' whole-body transform on the current GL matrix so that post-render passes
- * (TFC+ clothing, in our case) sit in body space rather than vanilla pose space.
+ * Applies Mo'Bends' whole-body transform to the current GL matrix.
  *
- * <p>Mo'Bends applies this transform inside {@code RenderBendsPlayer.rotateCorpse} via
- * {@code ModelBendsPlayer.postRender(scale, entityHeight)}. But that happens inside the push/pop
- * block of {@code RenderLivingEntity.doRender} — by the time {@code RenderPlayerEvent.Post} fires
- * the matrix has already been popped, so any third-party Post handler renders in vanilla space.
+ * <p>This is the heart of the compat layer. The transform is identical to the one Mo'Bends applies
+ * inside {@code RenderBendsPlayer.rotateCorpse} via {@code ModelBendsPlayer.postRender(scale, height)}.
+ * The catch: that call happens inside the {@code RenderLivingEntity.doRender} push/pop block, which
+ * has already been closed by the time {@code RenderPlayerEvent.Post} fires. So any third-party Post
+ * listener that tries to render body-attached geometry (TFC+ clothing) ends up in vanilla pose space.
  *
- * <p>This class simply re-applies the same {@code postRender} call. {@link ModelBendsPlayer} exposes
- * it publicly, and all its rotation/offset fields ({@code renderOffset}, {@code renderRotation},
- * {@code centerRotation}, {@code centerQuat}) are {@code public} too, so we don't need to reach
- * into private state.</p>
+ * <p>The fix is a Mixin into {@code RenderClothing.doRender} that invokes this method at the correct
+ * matrix slot: <b>after</b> TFC+ has finished rebuilding "entity at feet, vanilla model space"
+ * (the {@code -cpPos + entityPos} repositioning, scale, 180° flips and yaw), and <b>before</b>
+ * {@code switchRender} draws the clothing boxes. Applying the body transform at that slot mirrors
+ * the main-pass order exactly: {@code View × T(entityFeet) × R(yaw) × MoBendsPostRender × PartLocal}.
  *
- * <p>Crucially, Mo'Bends keeps the {@link ModelBendsPlayer} instance up to date with per-frame data
- * from {@code Data_Player} inside {@code rotateCorpse} itself (via
- * {@code updateWithEntityData + postRender}), so by the time Post fires the model's smoothed
- * fields already hold the correct values for this frame. We don't recompute.</p>
+ * <p>{@link ModelBendsPlayer#postRender(float, float)} is public, as are all the fields it reads
+ * ({@code renderOffset.vSmooth}, {@code renderRotation.vSmooth}, {@code centerRotation.vSmooth},
+ * {@code centerQuat}). Those fields are guaranteed to hold this-frame-this-entity values at Post
+ * time, because the main render pass synchronously completes before {@code RenderPlayerEvent.Post}
+ * fires for the same entity.
  */
 public final class MoBendsTransformApplier {
 
-    /** Vanilla player scale used everywhere in 1.7.10 ModelBiped rendering. */
+    /** Vanilla ModelBiped render scale (1/16 of a block per model unit). */
     public static final float MODEL_SCALE = 0.0625F;
 
     private MoBendsTransformApplier() {}
 
     /**
-     * Apply Mo'Bends' body transform to the current GL matrix.
+     * Apply Mo'Bends' whole-body transform for the player being rendered by {@code renderer}.
      *
-     * <p>No-op (and safe) when the renderer is not Mo'Bends or the model has been swapped to
-     * vanilla (e.g. while wearing a Fisk superhero suit, which Mo'Bends explicitly hands off to
-     * vanilla animation for).</p>
+     * <p>Safe to call when {@code renderer.modelBipedMain} is not a {@link ModelBendsPlayer} (e.g.
+     * Mo'Bends is in vanilla-fallback mode for a Fisk superhero suit) — the call becomes a no-op.
+     *
+     * @param renderer the RenderPlayer that TFC+ was passed (normally {@code RenderBendsPlayer})
+     * @param entity   the entity being rendered (used only for its height; may be null for 1.8F)
      */
-    public static void applyForPlayer(RenderPlayer renderer, EntityPlayer player, float partialTicks) {
-        if (renderer == null || player == null) {
+    public static void apply(RenderPlayer renderer, Entity entity) {
+        if (renderer == null) {
             return;
         }
 
         ModelBiped model = renderer.modelBipedMain;
         if (!(model instanceof ModelBendsPlayer)) {
-            // Vanilla renderer or superhero override — nothing to apply.
+            // Mo'Bends not in use, or temporarily swapped to vanilla ModelBiped for a compat case.
             return;
         }
 
         ModelBendsPlayer bendsModel = (ModelBendsPlayer) model;
-
-        // entityHeight is the same value Mo'Bends uses in rotateCorpse (default 1.8F for players;
-        // AbstractClientPlayer.height would be 1.8F too). Hardcoding 1.8F matches Mo'Bends' default
-        // overload and avoids relying on a player entity being non-null here.
-        float entityHeight = (player != null) ? player.height : 1.8F;
+        float entityHeight = (entity != null) ? entity.height : 1.8F;
         if (entityHeight <= 0.0F) {
             entityHeight = 1.8F;
         }
 
-        // Reproduce exactly what Mo'Bends did inside rotateCorpse for this frame. This applies, in
+        // Reproduce exactly what Mo'Bends does in rotateCorpse for this frame. This applies, in
         // order: renderOffset translate, then centerRotation/centerQuat pivoting at body mid-height,
-        // then renderRotation at the feet/origin. After this the matrix matches body space.
+        // then renderRotation at the feet/origin. After this, the current frame is in "body space".
         bendsModel.postRender(MODEL_SCALE, entityHeight);
     }
 }

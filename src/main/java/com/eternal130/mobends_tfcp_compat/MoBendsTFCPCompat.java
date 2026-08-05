@@ -14,6 +14,8 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class MoBendsTFCPCompat {
 
     public static final String MODID = "mobends_tfcp_compat";
+    public static final String MODID_MOBENDS = "mobends";
+    public static final String MODID_TFCP = "terrafirmacraftplus";
     public static final Logger LOG = LogManager.getLogger(MODID);
 
     @SidedProxy(clientSide = "com.eternal130.mobends_tfcp_compat.ClientProxy",
