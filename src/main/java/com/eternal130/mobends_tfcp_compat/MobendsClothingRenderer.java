@@ -110,10 +110,6 @@ public class MobendsClothingRenderer {
             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
             GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-            // Dispatch to TFC+'s clothing model dispatch. This copies rotateAngleX/Y/Z from
-            // modelBipedMain (the ModelBendsPlayer) into the clothing parts and renders them.
-            // Because we're inside MoBends' body-frame matrix (not TFC+'s rebuilt one), the
-            // rotations apply in the correct 3D orientation.
             tfcClothing.switchRender(
                 (EntityLivingBase) player,
                 item,
