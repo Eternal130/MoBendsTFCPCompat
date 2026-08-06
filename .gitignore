@@ -38,3 +38,6 @@ layout.json
 
 # OpenCode session/plan state
 .omo/
+
+# Game runtime logs (any location in the repo)
+*.log
