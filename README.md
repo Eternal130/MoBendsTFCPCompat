@@ -35,10 +35,10 @@ Drop `mobends_tfcp_compat-1.0.0.jar` into your `mods/` folder alongside Mo'Bends
 ## Building from source
 
 ```bash
-# Requires JDK 8 (ForgeGradle/RFG limitation)
+# Requires JDK 25 (pinned by gradle-daemon-jvm.properties — RFG daemon toolchain)
 ./gradlew setupDecompWorkspace
 ./gradlew build
-# Output: build/libs/mobends_tfcp_compat-<version>.jar
+# Output: build/libs/mobends_tfcp_compat-<version>.jar (Java 8 bytecode)
 ```
 
 The `libs/` directory holds the Mo'Bends and TFC+ dev (deobf) jars for compilation. Update them if you target newer versions of either mod.
