@@ -173,9 +173,9 @@ public class ModelBipedClothingAdapter extends ModelBiped {
 
     private void configureSocks() {
         clothingForeLegR.setTextureOffset(16, 23);
-        clothingForeLegR.addBox(-2F, 2F, -2F, 4, 4, 4, scaleFactor);
+        clothingForeLegR.addBox(-2F, 2F, 0F, 4, 4, 4, scaleFactor);
         clothingForeLegL.setTextureOffset(16, 23);
-        clothingForeLegL.addBox(-2F, 2F, -2F, 4, 4, 4, scaleFactor);
+        clothingForeLegL.addBox(-2F, 2F, 0F, 4, 4, 4, scaleFactor);
     }
 
     private void configureHat() {
