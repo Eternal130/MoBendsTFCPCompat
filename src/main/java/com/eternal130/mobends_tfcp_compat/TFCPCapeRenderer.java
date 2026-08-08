@@ -50,7 +50,8 @@ public class TFCPCapeRenderer {
     private final Segment[] slabs;
 
     public TFCPCapeRenderer() {
-        shoulder = new Segment(SHOULDER_HALF_W, SHOULDER_HALF_W, SHOULDER_THICK, SHOULDER_DEPTH, 0F, -SHOULDER_DEPTH, 16, 4, true);
+        shoulder = new Segment(SHOULDER_HALF_W, SHOULDER_HALF_W, SHOULDER_THICK, SHOULDER_DEPTH, 0F, -SHOULDER_DEPTH,
+            0.5F, 4.5F, true, true);
         slabs = new Segment[SLAB_COUNT];
         for (int i = 0; i < SLAB_COUNT; i++) {
             float slabTopY = i * SLAB_LEN;
@@ -58,7 +59,9 @@ public class TFCPCapeRenderer {
             float topHalfW = halfWidthAt(slabTopY);
             float botHalfW = halfWidthAt(slabBotY);
             float hingeY = (i == 0) ? SHOULDER_THICK : SLAB_LEN;
-            slabs[i] = new Segment(topHalfW, botHalfW, SLAB_LEN, HANG_DEPTH, hingeY, 0F, 16, 4 + (int) (i * SLAB_LEN), false);
+            float v0 = 4.5F + i * SLAB_LEN;
+            float v1 = Math.min(4.5F + (i + 1) * SLAB_LEN, 24F);
+            slabs[i] = new Segment(topHalfW, botHalfW, SLAB_LEN, HANG_DEPTH, hingeY, 0F, v0, v1, false, false);
             if (i > 0) {
                 slabs[i - 1].setChild(slabs[i]);
             }
@@ -96,7 +99,6 @@ public class TFCPCapeRenderer {
 
     private static final class Segment {
         final boolean fixed;
-        final float length;
         final float depth;
         final float hingeY;
         final float hingeZ;
@@ -108,8 +110,7 @@ public class TFCPCapeRenderer {
         private boolean compiled;
 
         Segment(float halfWidthTop, float halfWidthBottom, float length, float depth, float hingeY, float hingeZ,
-                int tu, int tv, boolean fixed) {
-            this.length = length;
+                float v0, float v1, boolean plate, boolean fixed) {
             this.depth = depth;
             this.hingeY = hingeY;
             this.hingeZ = hingeZ;
@@ -126,24 +127,41 @@ public class TFCPCapeRenderer {
             float z1 = 0F;
             float z2 = depth;
 
-            PositionTextureVertex v0 = new PositionTextureVertex(x1t, y1, z1, 0F, 0F);
-            PositionTextureVertex v1 = new PositionTextureVertex(x2t, y1, z1, 8F, 0F);
-            PositionTextureVertex v2 = new PositionTextureVertex(x2b, y2, z1, 8F, 8F);
-            PositionTextureVertex v3 = new PositionTextureVertex(x1b, y2, z1, 0F, 8F);
-            PositionTextureVertex v4 = new PositionTextureVertex(x1t, y1, z2, 0F, 0F);
-            PositionTextureVertex v5 = new PositionTextureVertex(x2t, y1, z2, 8F, 0F);
-            PositionTextureVertex v6 = new PositionTextureVertex(x2b, y2, z2, 8F, 8F);
-            PositionTextureVertex v7 = new PositionTextureVertex(x1b, y2, z2, 0F, 8F);
+            PositionTextureVertex v0v = new PositionTextureVertex(x1t, y1, z1, 0F, 0F);
+            PositionTextureVertex v1v = new PositionTextureVertex(x2t, y1, z1, 0F, 0F);
+            PositionTextureVertex v2v = new PositionTextureVertex(x2b, y2, z1, 0F, 0F);
+            PositionTextureVertex v3v = new PositionTextureVertex(x1b, y2, z1, 0F, 0F);
+            PositionTextureVertex v4v = new PositionTextureVertex(x1t, y1, z2, 0F, 0F);
+            PositionTextureVertex v5v = new PositionTextureVertex(x2t, y1, z2, 0F, 0F);
+            PositionTextureVertex v6v = new PositionTextureVertex(x2b, y2, z2, 0F, 0F);
+            PositionTextureVertex v7v = new PositionTextureVertex(x1b, y2, z2, 0F, 0F);
 
-            int tV = tv;
-            int tL = (int) length;
             quadList = new TexturedQuad[6];
-            quadList[0] = new TexturedQuad(new PositionTextureVertex[]{v1, v2, v3, v0}, tu, tV, tu + 16, tV + tL, TEX_W, TEX_H);
-            quadList[1] = new TexturedQuad(new PositionTextureVertex[]{v5, v4, v7, v6}, tu, tV, tu + 16, tV + tL, TEX_W, TEX_H);
-            quadList[2] = new TexturedQuad(new PositionTextureVertex[]{v4, v5, v1, v0}, tu, tV, tu + 16, tV + 1, TEX_W, TEX_H);
-            quadList[3] = new TexturedQuad(new PositionTextureVertex[]{v3, v2, v6, v7}, tu, tV, tu + 16, tV + 1, TEX_W, TEX_H);
-            quadList[4] = new TexturedQuad(new PositionTextureVertex[]{v0, v3, v7, v4}, tu, tV, tu + 16, tV + 1, TEX_W, TEX_H);
-            quadList[5] = new TexturedQuad(new PositionTextureVertex[]{v5, v6, v2, v1}, tu, tV, tu + 16, tV + 1, TEX_W, TEX_H);
+            if (plate) {
+                quadList[0] = quad(v1v, v2v, v3v, v0v, 15F, v0, 16F, v1);
+                quadList[1] = quad(v5v, v4v, v7v, v6v, 15F, v0, 16F, v1);
+                quadList[2] = quad(v4v, v5v, v1v, v0v, 15F, v0, 16F, v1);
+                quadList[3] = quad(v3v, v2v, v6v, v7v, 15F, v0, 16F, v1);
+                quadList[4] = quad(v0v, v3v, v7v, v4v, 16F, v0, 32F, v1);
+                quadList[5] = quad(v5v, v6v, v2v, v1v, 0F, v0, 16F, v1);
+            } else {
+                quadList[0] = quad(v0v, v1v, v2v, v3v, 0F, v0, 16F, v1);
+                quadList[1] = quad(v5v, v4v, v7v, v6v, 16F, v0, 32F, v1);
+                quadList[2] = quad(v4v, v5v, v1v, v0v, 15F, v0, 16F, v1);
+                quadList[3] = quad(v3v, v2v, v6v, v7v, 15F, v0, 16F, v1);
+                quadList[4] = quad(v0v, v3v, v7v, v4v, 0F, v0, 16F, v1);
+                quadList[5] = quad(v5v, v6v, v2v, v1v, 0F, v0, 16F, v1);
+            }
+        }
+
+        private static TexturedQuad quad(PositionTextureVertex a, PositionTextureVertex b,
+                PositionTextureVertex c, PositionTextureVertex d,
+                float u0, float v0, float u1, float v1) {
+            return new TexturedQuad(new PositionTextureVertex[]{
+                a.setTexturePosition(u0 / TEX_W, v0 / TEX_H),
+                b.setTexturePosition(u1 / TEX_W, v0 / TEX_H),
+                c.setTexturePosition(u1 / TEX_W, v1 / TEX_H),
+                d.setTexturePosition(u0 / TEX_W, v1 / TEX_H)});
         }
 
         void setChild(Segment c) { this.child = c; }
