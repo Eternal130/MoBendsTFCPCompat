@@ -6,9 +6,7 @@
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinRenderClothing",
-    "MixinModelShirt",
-    "MixinModelPants"
+    "MixinRenderClothing"
   ],
   "injectors": {
     "defaultRequire": 1,
