@@ -29,7 +29,7 @@ import org.lwjgl.opengl.GL11;
 public class ModelBipedClothingAdapter extends ModelBiped {
 
     public enum ClothingType {
-        SHIRT, PANTS, SOCKS, HAT, COAT, NULL;
+        SHIRT, PANTS, SOCKS, HAT, COAT, ROBE, CLOAK, NULL;
     }
 
     private final ClothingType type;
@@ -42,6 +42,7 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     private ModelRenderer clothingLegL;
     private ModelRenderer clothingForeLegR;
     private ModelRenderer clothingForeLegL;
+    private ModelRenderer clothingSkirt;
 
     public ModelBipedClothingAdapter(ClothingType type, float scaleFactor) {
         super(0.0F, 0.0F, 64, 32);
@@ -110,6 +111,13 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         clothingForeLegL.setRotationPoint(0F, 6F, -2F);
         clothingLegL.addChild(clothingForeLegL);
 
+        clothingSkirt = new ModelRenderer(this, 16, 0);
+        clothingSkirt.setRotationPoint(0F, 0F, 0F);
+        clothingBody.addChild(clothingSkirt);
+
+        bipedCloak.cubeList.clear();
+        bipedCloak.showModel = true;
+
         clothingBody.showModel = true;
         clothingHead.showModel = true;
         clothingArmR.showModel = true;
@@ -127,11 +135,18 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         clothingLegL.cubeList.clear();
         clothingForeLegR.cubeList.clear();
         clothingForeLegL.cubeList.clear();
+        clothingSkirt.cubeList.clear();
 
         switch (type) {
             case SHIRT:
             case COAT:
                 configureShirtOrCoat();
+                break;
+            case ROBE:
+                configureRobe();
+                break;
+            case CLOAK:
+                configureCloak();
                 break;
             case PANTS:
                 configurePants();
@@ -181,6 +196,20 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     private void configureHat() {
         clothingHead.setTextureOffset(0, 0);
         clothingHead.addBox(-4F, -9F, -6F, 8, 4, 10, scaleFactor);
+    }
+
+    private void configureRobe() {
+        clothingBody.setTextureOffset(16, 0);
+        clothingBody.addBox(-4F, -12F, -2F, 8, 12, 4, scaleFactor + 0.6F);
+        clothingArmR.setTextureOffset(16, 16);
+        clothingArmR.addBox(-3F, -2F, -2F, 4, 6, 4, scaleFactor + 0.3F);
+        clothingArmL.setTextureOffset(16, 16);
+        clothingArmL.addBox(-1F, -2F, -2F, 4, 6, 4, scaleFactor + 0.3F);
+        clothingSkirt.setTextureOffset(16, 0);
+        clothingSkirt.addBox(-5F, 0F, -3F, 10, 10, 6, scaleFactor + 0.8F);
+    }
+
+    private void configureCloak() {
     }
 
     public void syncFromModelBiped(ModelBiped source) {

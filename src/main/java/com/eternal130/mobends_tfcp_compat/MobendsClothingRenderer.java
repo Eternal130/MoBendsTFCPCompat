@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.lang.reflect.Field;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBiped;
@@ -43,7 +44,24 @@ public class MobendsClothingRenderer {
     private final Map<ModelBipedClothingAdapter.ClothingType, ModelBipedClothingAdapter> adapterCache =
         new HashMap<ModelBipedClothingAdapter.ClothingType, ModelBipedClothingAdapter>();
 
+    private TFCPCapeRenderer tfcpCapeRenderer;
+    private com.dunk.tfc.Render.Models.ModelCloak tfcCloakModel;
     private static long lastDiagMs = 0L;
+    private static Field extraEquipField;
+    private static boolean extraEquipFieldResolved;
+
+    public MobendsClothingRenderer() {
+        try {
+            tfcpCapeRenderer = new TFCPCapeRenderer();
+        } catch (Throwable t) {
+            MoBendsTFCPCompat.LOG.warn("MobendsClothingRenderer: could not init TFCPCapeRenderer", t);
+        }
+        try {
+            tfcCloakModel = new com.dunk.tfc.Render.Models.ModelCloak();
+        } catch (Throwable t) {
+            MoBendsTFCPCompat.LOG.warn("MobendsClothingRenderer: could not init TFC+ ModelCloak", t);
+        }
+    }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPre(RenderPlayerEvent.Pre e) {
@@ -57,6 +75,14 @@ public class MobendsClothingRenderer {
                 + " armL=" + rad2deg(m, "armL")
                 + " legR=" + rad2deg(m, "legR")
                 + " legL=" + rad2deg(m, "legL"));
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onSpecialsPre(RenderPlayerEvent.Specials.Pre e) {
+        if (tfcpCapeRenderer == null) return;
+        if (hasCloak(e.entityPlayer)) {
+            e.renderCape = false;
         }
     }
 
@@ -113,9 +139,13 @@ public class MobendsClothingRenderer {
             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
             GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-            GL11.glPushMatrix();
-            adapter.render((EntityLivingBase) player, 0F, 0F, 0F, 0F, 0F, scale);
-            GL11.glPopMatrix();
+            if (type == ModelBipedClothingAdapter.ClothingType.CLOAK && tfcpCapeRenderer != null) {
+                renderCloak(player, e, sourceModel, ie, item, textureVariant);
+            } else {
+                GL11.glPushMatrix();
+                adapter.render((EntityLivingBase) player, 0F, 0F, 0F, 0F, 0F, scale);
+                GL11.glPopMatrix();
+            }
 
             if (diag && type == ModelBipedClothingAdapter.ClothingType.SHIRT) {
                 System.out.println("[Adapter-Diag] rendered shirt"
@@ -134,6 +164,42 @@ public class MobendsClothingRenderer {
                     + " legR.rotX=" + String.format("%.1f", adapter.bipedRightLeg.rotateAngleX * 180f / (float) Math.PI));
             }
         }
+    }
+
+    private void renderCloak(EntityPlayer player, RenderPlayerEvent.Specials.Post e,
+            ModelBiped sourceModel, com.dunk.tfc.api.Interfaces.IEquipable ie,
+            ItemStack item, int textureVariant) {
+        if (tfcpCapeRenderer == null) return;
+        float scale = 0.0625F;
+        float partialTicks = e.partialRenderTick;
+        GL11.glPushMatrix();
+        sourceModel.bipedBody.postRender(scale);
+        GL11.glTranslatef(0.0F, -12.5F * scale, 0.0F);
+        GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+
+        net.gobbob.mobends.data.Data_Player capeData = net.gobbob.mobends.data.Data_Player.get(player.getEntityId());
+        boolean flyingSprint = player.capabilities.isFlying && player.isSprinting();
+        if (flyingSprint) {
+            capeData.setCapeWaveSpeed(4.0F);
+        } else {
+            capeData.setCapeWaveSpeed(1.0F);
+        }
+
+        tfcpCapeRenderer.applyAnimation(capeData);
+        tfcpCapeRenderer.render(scale);
+        GL11.glPopMatrix();
+    }
+
+    private boolean hasCloak(EntityPlayer player) {
+        if (player == null) return false;
+        for (ItemStack item : collectClothing(player)) {
+            if (item == null || !(item.getItem() instanceof com.dunk.tfc.api.Interfaces.IEquipable)) continue;
+            com.dunk.tfc.api.Interfaces.IEquipable ie = (com.dunk.tfc.api.Interfaces.IEquipable) item.getItem();
+            if (mapClothingType(ie.getClothingType()) == ModelBipedClothingAdapter.ClothingType.CLOAK) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String rad2deg(ModelBiped m, String part) {
@@ -174,10 +240,10 @@ public class MobendsClothingRenderer {
             case CLOTH_HAT:
             case STRAW_HAT: return ModelBipedClothingAdapter.ClothingType.HAT;
             case COAT:
-            case THINCOAT:
             case HEAVYCOAT:
-            case HEAVIERCOAT:
-            case ROBE: return ModelBipedClothingAdapter.ClothingType.COAT;
+            case HEAVIERCOAT: return ModelBipedClothingAdapter.ClothingType.COAT;
+            case ROBE: return ModelBipedClothingAdapter.ClothingType.ROBE;
+            case CLOAK: return ModelBipedClothingAdapter.ClothingType.CLOAK;
             default: return null;
         }
     }
@@ -185,19 +251,29 @@ public class MobendsClothingRenderer {
     private List<ItemStack> collectClothing(EntityPlayer player) {
         List<ItemStack> result = new ArrayList<ItemStack>();
 
-        try {
-            java.lang.reflect.Field f = player.inventory.getClass().getField("extraEquipInventory");
-            ItemStack[] extra = (ItemStack[]) f.get(player.inventory);
-            if (extra != null) {
-                for (ItemStack is : extra) {
-                    if (is != null && is.getItem() instanceof com.dunk.tfc.api.Interfaces.IEquipable) {
-                        result.add(is);
+        if (!extraEquipFieldResolved) {
+            try {
+                extraEquipField = player.inventory.getClass().getField("extraEquipInventory");
+            } catch (NoSuchFieldException nsfe) {
+                extraEquipField = null;
+            }
+            extraEquipFieldResolved = true;
+        }
+
+        if (extraEquipField != null) {
+            try {
+                ItemStack[] extra = (ItemStack[]) extraEquipField.get(player.inventory);
+                if (extra != null) {
+                    for (ItemStack is : extra) {
+                        if (is != null && is.getItem() instanceof com.dunk.tfc.api.Interfaces.IEquipable) {
+                            result.add(is);
+                        }
                     }
                 }
-            }
-        } catch (NoSuchFieldException nsfe) {
+            } catch (Throwable ignored) {}
+        } else {
             collectFromPlayerInfo(player, result);
-        } catch (Throwable ignored) {}
+        }
 
         for (ItemStack is : player.inventory.armorInventory) {
             if (is != null && is.getItem() instanceof com.dunk.tfc.api.Interfaces.IEquipable) {
