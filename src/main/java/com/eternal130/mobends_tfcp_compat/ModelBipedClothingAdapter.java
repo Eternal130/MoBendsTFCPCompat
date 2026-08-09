@@ -36,7 +36,7 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     private final float scaleFactor;
     private ModelRenderer clothingBody;
     private ModelRenderer clothingHead;
-    private ModelRenderer hatBase;
+    private ScaledModelRenderer hatBase;
     private ModelRenderer hatCrown;
     private ModelRenderer hatBulge;
     private ModelRenderer strawBrim;
@@ -201,13 +201,15 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     }
 
     private void configureHat() {
-        hatBase = new ModelRenderer(this, 0, 0);
+        hatBase = new ScaledModelRenderer(this, 0, 0);
+        hatBase.setScale(1.1F, 1.1F, 1.1F);
         hatBase.setRotationPoint(0F, 0F, 0F);
         hatBase.rotateAngleX = -0.2F;
         clothingHead.addChild(hatBase);
 
         if (type == ClothingType.STRAW_HAT2) {
             strawHat2Cone = new StrawHat2Model(this);
+            strawHat2Cone.setScale(1.1F, 1.1F, 1.1F);
             strawHat2Cone.setRotationPoint(0F, -1F, 0F);
             clothingHead.addChild(strawHat2Cone);
             return;

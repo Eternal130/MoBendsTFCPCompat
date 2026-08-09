@@ -31,6 +31,9 @@ public class StrawHat2Model extends ModelRenderer {
     private final TexturedQuad[] quadList;
     private int displayList;
     private boolean compiled;
+    private float scaleX = 1.0F;
+    private float scaleY = 1.0F;
+    private float scaleZ = 1.0F;
 
     public StrawHat2Model(ModelBase base) {
         super(base, 0, 0);
@@ -82,6 +85,13 @@ public class StrawHat2Model extends ModelRenderer {
             d.setTexturePosition(u0 / TEX_W, v1 / TEX_H)});
     }
 
+    public StrawHat2Model setScale(float x, float y, float z) {
+        this.scaleX = x;
+        this.scaleY = y;
+        this.scaleZ = z;
+        return this;
+    }
+
     @Override
     public void render(float scale) {
         if (!this.showModel || this.isHidden) return;
@@ -103,6 +113,9 @@ public class StrawHat2Model extends ModelRenderer {
             if (this.rotateAngleX != 0.0F) {
                 GL11.glRotatef(this.rotateAngleX * (180F / (float) Math.PI), 1.0F, 0.0F, 0.0F);
             }
+        }
+        if (this.scaleX != 1.0F || this.scaleY != 1.0F || this.scaleZ != 1.0F) {
+            GL11.glScalef(this.scaleX, this.scaleY, this.scaleZ);
         }
         GL11.glCallList(displayList);
         if (this.childModels != null) {
