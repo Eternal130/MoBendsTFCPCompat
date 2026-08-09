@@ -29,7 +29,7 @@ import org.lwjgl.opengl.GL11;
 public class ModelBipedClothingAdapter extends ModelBiped {
 
     public enum ClothingType {
-        SHIRT, PANTS, SOCKS, CLOTH_HAT, STRAW_HAT, STRAW_HAT2,
+        SHIRT, PANTS, SHORTS, SOCKS, CLOTH_HAT, STRAW_HAT, STRAW_HAT2,
         FUR_HAT_BEAR, FUR_HAT_WOLF, COAT, ROBE, CLOAK, NULL;
     }
 
@@ -58,7 +58,7 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     public ModelBipedClothingAdapter(ClothingType type, float scaleFactor) {
         super(0.0F, 0.0F, 64, 32);
         this.type = type;
-        this.scaleFactor = 0.5F;
+        this.scaleFactor = scaleFactor;
         this.isChild = false;
         configureGeometry();
     }
@@ -160,7 +160,10 @@ public class ModelBipedClothingAdapter extends ModelBiped {
                 configureCloak();
                 break;
             case PANTS:
-                configurePants();
+                configurePants(false);
+                break;
+            case SHORTS:
+                configurePants(true);
                 break;
             case SOCKS:
                 configureSocks();
@@ -192,17 +195,28 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         clothingArmL.addBox(-1F, -2F, -2F, 4, 6, 4, scaleFactor + armPad);
     }
 
-    private void configurePants() {
+    private void configurePants(boolean shorts) {
+        // 2-high hip belt (TFC+ ModelPants body box); a full torso box maps the
+        // texture's belt band (rows 0-7) to the chest via front-face V 2..14.
         clothingBody.setTextureOffset(16, 0);
-        clothingBody.addBox(-4F, -12F, -2F, 8, 12, 4, scaleFactor);
+        clothingBody.addBox(-4F, -2F, -2F, 8, 2, 4, scaleFactor);
         clothingLegR.setTextureOffset(16, 16);
         clothingLegR.addBox(-2F, 0F, -2F, 4, 6, 4, scaleFactor);
         clothingLegL.setTextureOffset(16, 16);
         clothingLegL.addBox(-2F, 0F, -2F, 4, 6, 4, scaleFactor);
-        clothingForeLegR.setTextureOffset(16, 16);
-        clothingForeLegR.addBox(-2F, 0F, 0F, 4, 6, 4, scaleFactor);
-        clothingForeLegL.setTextureOffset(16, 16);
-        clothingForeLegL.addBox(-2F, 0F, 0F, 4, 6, 4, scaleFactor);
+        // Thigh segment covers y 12..18 (6 high). Long pants add a 2-high shin
+        // (y 18..20) so the combined length matches TFC+ ModelPants' 8-high leg
+        // (y 12..20); shorts end at the thigh. The shin rides the foreleg part
+        // so it follows Mo'Bends' knee bend, and stays above the ankle so socks
+        // remain visible (TFC+ pants also stop short of the foot).
+        if (!shorts) {
+            // texOffset (16,24) splices shin v 24..26 with thigh 18..24 into the
+            // exact TFC+ leg window [18,26] (16,16 would sample 16..18 outside it).
+            clothingForeLegR.setTextureOffset(16, 24);
+            clothingForeLegR.addBox(-2F, 0F, 0F, 4, 2, 4, scaleFactor);
+            clothingForeLegL.setTextureOffset(16, 24);
+            clothingForeLegL.addBox(-2F, 0F, 0F, 4, 2, 4, scaleFactor);
+        }
     }
 
     private void configureSocks() {

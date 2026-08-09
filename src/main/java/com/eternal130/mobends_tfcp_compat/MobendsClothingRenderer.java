@@ -121,6 +121,10 @@ public class MobendsClothingRenderer {
                     type = ModelBipedClothingAdapter.ClothingType.FUR_HAT_WOLF;
                 }
             }
+            if (type == ModelBipedClothingAdapter.ClothingType.PANTS
+                    && isShorts(item.getItem())) {
+                type = ModelBipedClothingAdapter.ClothingType.SHORTS;
+            }
 
             // TFC+ ModelHat suppresses only the generic cloth-hat branch when a
             // helmet sits in armor[3]; straw/fur branches dispatch before it.
@@ -131,7 +135,7 @@ public class MobendsClothingRenderer {
 
             ModelBipedClothingAdapter adapter = adapterCache.get(type);
             if (adapter == null) {
-                adapter = new ModelBipedClothingAdapter(type, 0.0F);
+                adapter = new ModelBipedClothingAdapter(type, clothingScale(type));
                 adapterCache.put(type, adapter);
             }
 
@@ -157,6 +161,7 @@ public class MobendsClothingRenderer {
             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
             GL11.glEnable(GL11.GL_ALPHA_TEST);
 
+            applyClothingTint(item);
             if (type == ModelBipedClothingAdapter.ClothingType.CLOAK && tfcpCapeRenderer != null) {
                 renderCloak(player, e, sourceModel, ie, item, textureVariant);
             } else {
@@ -164,6 +169,7 @@ public class MobendsClothingRenderer {
                 adapter.render((EntityLivingBase) player, 0F, 0F, 0F, 0F, 0F, scale);
                 GL11.glPopMatrix();
             }
+            GL11.glColor3f(1F, 1F, 1F);
 
             if (diag && type == ModelBipedClothingAdapter.ClothingType.SHIRT) {
                 System.out.println("[Adapter-Diag] rendered shirt"
@@ -181,6 +187,27 @@ public class MobendsClothingRenderer {
                     + " legR.children=" + (adapter.bipedRightLeg.childModels != null ? adapter.bipedRightLeg.childModels.size() : -1)
                     + " legR.rotX=" + String.format("%.1f", adapter.bipedRightLeg.rotateAngleX * 180f / (float) Math.PI));
             }
+        }
+    }
+
+    /**
+     * TFC+ tint: dye from NBT "color" x wetness (12000-"wetness")/12000.
+     */
+    private void applyClothingTint(ItemStack item) {
+        float wetness = 1F;
+        if (item.stackTagCompound != null) {
+            wetness = (12000F - (float) item.stackTagCompound.getInteger("wetness")) / 12000F;
+        }
+        int color = -1;
+        if (item.getItem() instanceof com.dunk.tfc.Items.ItemClothing) {
+            color = ((com.dunk.tfc.Items.ItemClothing) item.getItem()).getColor(item);
+        }
+        if (color != -1) {
+            GL11.glColor3f(((color >> 16) & 255) / 255.0F * wetness,
+                ((color >> 8) & 255) / 255.0F * wetness,
+                (color & 255) / 255.0F * wetness);
+        } else {
+            GL11.glColor3f(wetness, wetness, wetness);
         }
     }
 
@@ -245,6 +272,26 @@ public class MobendsClothingRenderer {
             + " armL=" + rad2deg(m, "armL")
             + " legR=" + rad2deg(m, "legR")
             + " legL=" + rad2deg(m, "legL"));
+    }
+
+    /**
+     * Box inflation per type. PANTS = TFC+ ModelPants(0.25f); 0.5 default keeps
+     * the user-validated look for other types (TFC+ uses 0.3/0.2/0.6 — see PANTS.md §6).
+     */
+    private float clothingScale(ModelBipedClothingAdapter.ClothingType type) {
+        if (type == ModelBipedClothingAdapter.ClothingType.PANTS
+                || type == ModelBipedClothingAdapter.ClothingType.SHORTS) {
+            return 0.25F;
+        }
+        return 0.5F;
+    }
+
+    private boolean isShorts(net.minecraft.item.Item item) {
+        return item == com.dunk.tfc.api.TFCItems.woolShorts
+            || item == com.dunk.tfc.api.TFCItems.cottonShorts
+            || item == com.dunk.tfc.api.TFCItems.linenShorts
+            || item == com.dunk.tfc.api.TFCItems.silkShorts
+            || item == com.dunk.tfc.api.TFCItems.leatherShorts;
     }
 
     private ModelBipedClothingAdapter.ClothingType mapClothingType(
