@@ -29,7 +29,8 @@ import org.lwjgl.opengl.GL11;
 public class ModelBipedClothingAdapter extends ModelBiped {
 
     public enum ClothingType {
-        SHIRT, PANTS, SOCKS, CLOTH_HAT, STRAW_HAT, STRAW_HAT2, COAT, ROBE, CLOAK, NULL;
+        SHIRT, PANTS, SOCKS, CLOTH_HAT, STRAW_HAT, STRAW_HAT2,
+        FUR_HAT_BEAR, FUR_HAT_WOLF, COAT, ROBE, CLOAK, NULL;
     }
 
     private final ClothingType type;
@@ -41,6 +42,11 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     private ModelRenderer hatBulge;
     private ModelRenderer strawBrim;
     private StrawHat2Model strawHat2Cone;
+    private ModelRenderer animalHead;
+    private ModelRenderer animalSnout;
+    private ModelRenderer animalEars;
+    private ModelRenderer animalFur;
+    private ModelRenderer animalFur2;
     private ModelRenderer clothingArmR;
     private ModelRenderer clothingArmL;
     private ModelRenderer clothingLegR;
@@ -164,6 +170,12 @@ public class ModelBipedClothingAdapter extends ModelBiped {
             case STRAW_HAT2:
                 configureHat();
                 break;
+            case FUR_HAT_BEAR:
+                configureFurHat(true);
+                break;
+            case FUR_HAT_WOLF:
+                configureFurHat(false);
+                break;
             default:
                 break;
         }
@@ -201,11 +213,7 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     }
 
     private void configureHat() {
-        hatBase = new ScaledModelRenderer(this, 0, 0);
-        hatBase.setScale(1.1F, 1.1F, 1.1F);
-        hatBase.setRotationPoint(0F, 0F, 0F);
-        hatBase.rotateAngleX = -0.2F;
-        clothingHead.addChild(hatBase);
+        createHatBase();
 
         if (type == ClothingType.STRAW_HAT2) {
             strawHat2Cone = new StrawHat2Model(this);
@@ -228,6 +236,51 @@ public class ModelBipedClothingAdapter extends ModelBiped {
             hatBulge.addBox(-4.5F, -7F, -6.5F, 9, 3, 11, -0.4F);
             hatBase.addChild(hatBulge);
         }
+    }
+
+    /**
+     * Bear/wolf fur hats (TFCItems.bearFurHat / wolfFurHat). Mirrors TFC+ ModelHat's
+     * animal branch; snout offsetZ -1/32 on bear, 0 on wolf.
+     */
+    private void configureFurHat(boolean bear) {
+        createHatBase();
+
+        animalHead = new ModelRenderer(this, 36, 0);
+        animalHead.addBox(-4F, -10F, -5F, 8, 4, 6);
+        animalHead.rotateAngleX = 0.2F;
+        hatBase.addChild(animalHead);
+
+        animalSnout = new ModelRenderer(this, 36, 11);
+        animalSnout.addBox(-2F, -8F, -8F, 4, 3, 4);
+        animalSnout.offsetZ = bear ? -1F / 32F : 0F;
+        animalHead.addChild(animalSnout);
+
+        animalEars = new ModelRenderer(this, 36, 18);
+        animalEars.addBox(-3.5F, -11.5F, 0F, 2, 3, 1);
+        animalEars.addBox(1.5F, -11.5F, 0F, 2, 3, 1);
+        animalHead.addChild(animalEars);
+
+        animalFur = new ModelRenderer(this, 5, 19);
+        animalFur.addBox(-4.5F, -9F, -5.5F, 9, 6, 6);
+        animalFur.rotateAngleX = -0.4F;
+        hatBase.addChild(animalFur);
+
+        animalFur2 = new ModelRenderer(this, 5, 19);
+        animalFur2.addBox(-4.5F, -5.6F, -6F, 9, 6, 6, -0.1F);
+        animalFur2.rotateAngleX = -0.9F;
+        animalFur.addChild(animalFur2);
+    }
+
+    /**
+     * Mirrors TFC+ ModelHat's {@code base} frame: empty parent at the head carrying
+     * the -0.2 worn tilt; 1.1x scale applies to every hat part (user-validated).
+     */
+    private void createHatBase() {
+        hatBase = new ScaledModelRenderer(this, 0, 0);
+        hatBase.setScale(1.1F, 1.1F, 1.1F);
+        hatBase.setRotationPoint(0F, 0F, 0F);
+        hatBase.rotateAngleX = -0.2F;
+        clothingHead.addChild(hatBase);
     }
 
     private void configureRobe() {

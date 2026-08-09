@@ -114,6 +114,20 @@ public class MobendsClothingRenderer {
                     && item.getItem() == com.dunk.tfc.api.TFCItems.strawHat2) {
                 type = ModelBipedClothingAdapter.ClothingType.STRAW_HAT2;
             }
+            if (type == ModelBipedClothingAdapter.ClothingType.CLOTH_HAT) {
+                if (item.getItem() == com.dunk.tfc.api.TFCItems.bearFurHat) {
+                    type = ModelBipedClothingAdapter.ClothingType.FUR_HAT_BEAR;
+                } else if (item.getItem() == com.dunk.tfc.api.TFCItems.wolfFurHat) {
+                    type = ModelBipedClothingAdapter.ClothingType.FUR_HAT_WOLF;
+                }
+            }
+
+            // TFC+ ModelHat suppresses only the generic cloth-hat branch when a
+            // helmet sits in armor[3]; straw/fur branches dispatch before it.
+            if (type == ModelBipedClothingAdapter.ClothingType.CLOTH_HAT
+                    && player.getCurrentArmor(3) != null) {
+                continue;
+            }
 
             ModelBipedClothingAdapter adapter = adapterCache.get(type);
             if (adapter == null) {
