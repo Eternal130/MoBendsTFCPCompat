@@ -29,7 +29,8 @@ import org.lwjgl.opengl.GL11;
 public class ModelBipedClothingAdapter extends ModelBiped {
 
     public enum ClothingType {
-        SHIRT, PANTS, SHORTS, SOCKS, CLOTH_HAT, STRAW_HAT, STRAW_HAT2,
+        SHIRT, PANTS, SHORTS, SOCKS, BOOTS, FULLBOOTS, SANDALS,
+        CLOTH_HAT, STRAW_HAT, STRAW_HAT2,
         FUR_HAT_BEAR, FUR_HAT_WOLF, COAT, ROBE, CLOAK, NULL;
     }
 
@@ -53,6 +54,10 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     private ModelRenderer clothingLegL;
     private ModelRenderer clothingForeLegR;
     private ModelRenderer clothingForeLegL;
+    private ModelRenderer clothingToeR;
+    private ModelRenderer clothingToeL;
+    private ModelRenderer clothingSoleR;
+    private ModelRenderer clothingSoleL;
     private ModelRenderer clothingSkirt;
 
     public ModelBipedClothingAdapter(ClothingType type, float scaleFactor) {
@@ -122,6 +127,24 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         clothingForeLegL.setRotationPoint(0F, 6F, -2F);
         clothingLegL.addChild(clothingForeLegL);
 
+        clothingToeR = new ModelRenderer(this, 6, 29);
+        clothingToeR.setRotationPoint(0F, 0F, 0F);
+        clothingForeLegR.addChild(clothingToeR);
+
+        clothingToeL = new ModelRenderer(this, 6, 29);
+        clothingToeL.mirror = true;
+        clothingToeL.setRotationPoint(0F, 0F, 0F);
+        clothingForeLegL.addChild(clothingToeL);
+
+        clothingSoleR = new ModelRenderer(this, 6, 0);
+        clothingSoleR.setRotationPoint(0F, 0F, 0F);
+        clothingForeLegR.addChild(clothingSoleR);
+
+        clothingSoleL = new ModelRenderer(this, 6, 0);
+        clothingSoleL.mirror = true;
+        clothingSoleL.setRotationPoint(0F, 0F, 0F);
+        clothingForeLegL.addChild(clothingSoleL);
+
         clothingSkirt = new ModelRenderer(this, 16, 0);
         clothingSkirt.setRotationPoint(0F, 0F, 0F);
         clothingBody.addChild(clothingSkirt);
@@ -166,7 +189,14 @@ public class ModelBipedClothingAdapter extends ModelBiped {
                 configurePants(true);
                 break;
             case SOCKS:
-                configureSocks();
+                configureFootwear(false, false);
+                break;
+            case BOOTS:
+            case FULLBOOTS:
+                configureFootwear(true, false);
+                break;
+            case SANDALS:
+                configureFootwear(false, true);
                 break;
             case CLOTH_HAT:
             case STRAW_HAT:
@@ -219,11 +249,27 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         }
     }
 
-    private void configureSocks() {
-        clothingForeLegR.setTextureOffset(16, 23);
-        clothingForeLegR.addBox(-2F, 2F, 0F, 4, 4, 4, scaleFactor);
-        clothingForeLegL.setTextureOffset(16, 23);
-        clothingForeLegL.addBox(-2F, 2F, 0F, 4, 4, 4, scaleFactor);
+    private void configureFootwear(boolean bootStyle, boolean sandals) {
+        int sockTexX = bootStyle ? 0 : 16;
+        int sockTexY = bootStyle ? 22 : 23;
+        int toeTexX = bootStyle ? 0 : 6;
+        // Local y 1..6 = model y 19..24 (TFC+ window); v samples [27,32]/[26,31].
+        clothingForeLegR.setTextureOffset(sockTexX, sockTexY);
+        clothingForeLegR.addBox(-2F, 1F, 0F, 4, 5, 4, scaleFactor);
+        clothingForeLegL.setTextureOffset(sockTexX, sockTexY);
+        clothingForeLegL.addBox(-2F, 1F, 0F, 4, 5, 4, scaleFactor);
+        // Toe cap local y 5..6, z front-protrudes to model z -3..-2.
+        clothingToeR.setTextureOffset(toeTexX, 29);
+        clothingToeR.addBox(-2F, 5F, -1F, 4, 1, 1, scaleFactor);
+        clothingToeL.setTextureOffset(toeTexX, 29);
+        clothingToeL.addBox(-2F, 5F, -1F, 4, 1, 1, scaleFactor);
+        // Sole local y 6..7 = model y 24..25, z -2..3; only sandals show it.
+        clothingSoleR.setTextureOffset(6, 0);
+        clothingSoleR.addBox(-2F, 6F, 0F, 4, 1, 5);
+        clothingSoleR.showModel = sandals;
+        clothingSoleL.setTextureOffset(6, 0);
+        clothingSoleL.addBox(-2F, 6F, 0F, 4, 1, 5);
+        clothingSoleL.showModel = sandals;
     }
 
     private void configureHat() {

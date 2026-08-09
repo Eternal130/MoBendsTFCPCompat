@@ -198,17 +198,24 @@ public class MobendsClothingRenderer {
         if (item.stackTagCompound != null) {
             wetness = (12000F - (float) item.stackTagCompound.getInteger("wetness")) / 12000F;
         }
-        int color = -1;
+        float r = 1F;
+        float g = 1F;
+        float b = 1F;
         if (item.getItem() instanceof com.dunk.tfc.Items.ItemClothing) {
-            color = ((com.dunk.tfc.Items.ItemClothing) item.getItem()).getColor(item);
+            int color = ((com.dunk.tfc.Items.ItemClothing) item.getItem()).getColor(item);
+            if (color != -1) {
+                r = ((color >> 16) & 255) / 255.0F;
+                g = ((color >> 8) & 255) / 255.0F;
+                b = (color & 255) / 255.0F;
+            }
         }
-        if (color != -1) {
-            GL11.glColor3f(((color >> 16) & 255) / 255.0F * wetness,
-                ((color >> 8) & 255) / 255.0F * wetness,
-                (color & 255) / 255.0F * wetness);
-        } else {
-            GL11.glColor3f(wetness, wetness, wetness);
+        // TFC+ ModelSocks applies an extra leather tint to leather sandals.
+        if (item.getItem() == com.dunk.tfc.api.TFCItems.leatherSandals) {
+            r *= 204F / 255.0F;
+            g *= 177F / 255.0F;
+            b *= 87F / 255.0F;
         }
+        GL11.glColor3f(r * wetness, g * wetness, b * wetness);
     }
 
     private void renderCloak(EntityPlayer player, RenderPlayerEvent.Specials.Post e,
@@ -279,11 +286,15 @@ public class MobendsClothingRenderer {
      * the user-validated look for other types (TFC+ uses 0.3/0.2/0.6 — see PANTS.md §6).
      */
     private float clothingScale(ModelBipedClothingAdapter.ClothingType type) {
-        if (type == ModelBipedClothingAdapter.ClothingType.PANTS
-                || type == ModelBipedClothingAdapter.ClothingType.SHORTS) {
-            return 0.25F;
+        switch (type) {
+            case PANTS:
+            case SHORTS: return 0.25F;
+            case SOCKS: return 0.2F;
+            case BOOTS: return 0.6F;
+            case FULLBOOTS: return 0.5F;
+            case SANDALS: return 0.4F;
+            default: return 0.5F;
         }
-        return 0.5F;
     }
 
     private boolean isShorts(net.minecraft.item.Item item) {
@@ -302,6 +313,9 @@ public class MobendsClothingRenderer {
             case PANTS:
             case THINPANTS: return ModelBipedClothingAdapter.ClothingType.PANTS;
             case SOCKS: return ModelBipedClothingAdapter.ClothingType.SOCKS;
+            case BOOTS: return ModelBipedClothingAdapter.ClothingType.BOOTS;
+            case FULLBOOTS: return ModelBipedClothingAdapter.ClothingType.FULLBOOTS;
+            case SANDALS: return ModelBipedClothingAdapter.ClothingType.SANDALS;
             case CLOTH_HAT: return ModelBipedClothingAdapter.ClothingType.CLOTH_HAT;
             case STRAW_HAT: return ModelBipedClothingAdapter.ClothingType.STRAW_HAT;
             case COAT:
