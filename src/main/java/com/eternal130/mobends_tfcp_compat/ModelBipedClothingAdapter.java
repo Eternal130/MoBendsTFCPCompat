@@ -29,13 +29,18 @@ import org.lwjgl.opengl.GL11;
 public class ModelBipedClothingAdapter extends ModelBiped {
 
     public enum ClothingType {
-        SHIRT, PANTS, SOCKS, HAT, COAT, ROBE, CLOAK, NULL;
+        SHIRT, PANTS, SOCKS, CLOTH_HAT, STRAW_HAT, STRAW_HAT2, COAT, ROBE, CLOAK, NULL;
     }
 
     private final ClothingType type;
     private final float scaleFactor;
     private ModelRenderer clothingBody;
     private ModelRenderer clothingHead;
+    private ModelRenderer hatBase;
+    private ModelRenderer hatCrown;
+    private ModelRenderer hatBulge;
+    private ModelRenderer strawBrim;
+    private StrawHat2Model strawHat2Cone;
     private ModelRenderer clothingArmR;
     private ModelRenderer clothingArmL;
     private ModelRenderer clothingLegR;
@@ -154,7 +159,9 @@ public class ModelBipedClothingAdapter extends ModelBiped {
             case SOCKS:
                 configureSocks();
                 break;
-            case HAT:
+            case CLOTH_HAT:
+            case STRAW_HAT:
+            case STRAW_HAT2:
                 configureHat();
                 break;
             default:
@@ -194,8 +201,31 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     }
 
     private void configureHat() {
-        clothingHead.setTextureOffset(0, 0);
-        clothingHead.addBox(-4F, -9F, -6F, 8, 4, 10, scaleFactor);
+        hatBase = new ModelRenderer(this, 0, 0);
+        hatBase.setRotationPoint(0F, 0F, 0F);
+        hatBase.rotateAngleX = -0.2F;
+        clothingHead.addChild(hatBase);
+
+        if (type == ClothingType.STRAW_HAT2) {
+            strawHat2Cone = new StrawHat2Model(this);
+            strawHat2Cone.setRotationPoint(0F, -1F, 0F);
+            clothingHead.addChild(strawHat2Cone);
+            return;
+        }
+
+        hatCrown = new ModelRenderer(this, 0, 0);
+        hatCrown.addBox(-4F, -9F, -6F, 8, 4, 10, -0.1F);
+        hatBase.addChild(hatCrown);
+
+        if (type == ClothingType.STRAW_HAT) {
+            strawBrim = new ModelRenderer(this, 20, 0);
+            strawBrim.addBox(-7F, -6F, -9F, 14, 1, 16, -0.1F);
+            hatCrown.addChild(strawBrim);
+        } else {
+            hatBulge = new ModelRenderer(this, 0, 14);
+            hatBulge.addBox(-4.5F, -7F, -6.5F, 9, 3, 11, -0.4F);
+            hatBase.addChild(hatBulge);
+        }
     }
 
     private void configureRobe() {

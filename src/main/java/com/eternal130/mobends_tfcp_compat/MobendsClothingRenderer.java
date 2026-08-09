@@ -110,6 +110,10 @@ public class MobendsClothingRenderer {
             com.dunk.tfc.api.Interfaces.IEquipable ie = (com.dunk.tfc.api.Interfaces.IEquipable) item.getItem();
             ModelBipedClothingAdapter.ClothingType type = mapClothingType(ie.getClothingType());
             if (type == null) continue;
+            if (type == ModelBipedClothingAdapter.ClothingType.STRAW_HAT
+                    && item.getItem() == com.dunk.tfc.api.TFCItems.strawHat2) {
+                type = ModelBipedClothingAdapter.ClothingType.STRAW_HAT2;
+            }
 
             ModelBipedClothingAdapter adapter = adapterCache.get(type);
             if (adapter == null) {
@@ -237,8 +241,8 @@ public class MobendsClothingRenderer {
             case PANTS:
             case THINPANTS: return ModelBipedClothingAdapter.ClothingType.PANTS;
             case SOCKS: return ModelBipedClothingAdapter.ClothingType.SOCKS;
-            case CLOTH_HAT:
-            case STRAW_HAT: return ModelBipedClothingAdapter.ClothingType.HAT;
+            case CLOTH_HAT: return ModelBipedClothingAdapter.ClothingType.CLOTH_HAT;
+            case STRAW_HAT: return ModelBipedClothingAdapter.ClothingType.STRAW_HAT;
             case COAT:
             case HEAVYCOAT:
             case HEAVIERCOAT: return ModelBipedClothingAdapter.ClothingType.COAT;
