@@ -49,8 +49,10 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     private ModelRenderer animalEars;
     private ModelRenderer animalFur;
     private ModelRenderer animalFur2;
-    private ModelRenderer clothingArmR;
-    private ModelRenderer clothingArmL;
+    private net.gobbob.mobends.client.model.ModelRendererBends clothingArmR;
+    private net.gobbob.mobends.client.model.ModelRendererBends clothingArmL;
+    private net.gobbob.mobends.client.model.ModelRendererBends clothingForeArmR;
+    private net.gobbob.mobends.client.model.ModelRendererBends clothingForeArmL;
     private ModelRenderer clothingLegR;
     private ModelRenderer clothingLegL;
     private ModelRenderer clothingForeLegR;
@@ -99,14 +101,23 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         clothingHead.setRotationPoint(0F, -12F, 0F);
         clothingBody.addChild(clothingHead);
 
-        clothingArmR = new ModelRenderer(this, 16, 16);
+        clothingArmR = new net.gobbob.mobends.client.model.ModelRendererBends(this, 16, 16);
         clothingArmR.setRotationPoint(-5F, -10F, 0F);
         clothingBody.addChild(clothingArmR);
 
-        clothingArmL = new ModelRenderer(this, 16, 16);
+        clothingArmL = new net.gobbob.mobends.client.model.ModelRendererBends(this, 16, 16);
         clothingArmL.mirror = true;
         clothingArmL.setRotationPoint(5F, -10F, 0F);
         clothingBody.addChild(clothingArmL);
+
+        clothingForeArmR = new net.gobbob.mobends.client.model.ModelRendererBends(this, 16, 16);
+        clothingForeArmR.setRotationPoint(0F, 4F, 0F);
+        clothingArmR.addChild(clothingForeArmR);
+
+        clothingForeArmL = new net.gobbob.mobends.client.model.ModelRendererBends(this, 16, 16);
+        clothingForeArmL.mirror = true;
+        clothingForeArmL.setRotationPoint(0F, 4F, 0F);
+        clothingArmL.addChild(clothingForeArmL);
 
         bipedRightLeg.cubeList.clear();
         bipedRightLeg.showModel = true;
@@ -171,6 +182,8 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         clothingHead.cubeList.clear();
         clothingArmR.cubeList.clear();
         clothingArmL.cubeList.clear();
+        clothingForeArmR.cubeList.clear();
+        clothingForeArmL.cubeList.clear();
         clothingLegR.cubeList.clear();
         clothingLegL.cubeList.clear();
         clothingForeLegR.cubeList.clear();
@@ -228,11 +241,16 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         clothingBody.setTextureOffset(16, 0);
         clothingBody.addBox(-4F, -12F, -2F, 8, 12, 4, scaleFactor + bodyInflation);
         if (!sleeveless) {
-            // 8-high sleeve = TFC+ ModelShirt arm (y 12..20 in MoBends frame).
+            // Upper sleeve (6-high, y -2..4) covers the Mo'Bends upper arm; the 2-high
+            // fore-arm sleeve (y 4..6) rides clothingForeArmR so it follows the elbow bend.
             clothingArmR.setTextureOffset(16, 16);
-            clothingArmR.addBox(-3F, -2F, -2F, 4, 8, 4, scaleFactor + armInflation);
+            clothingArmR.addBox(-3F, -2F, -2F, 4, 6, 4, scaleFactor + armInflation);
             clothingArmL.setTextureOffset(16, 16);
-            clothingArmL.addBox(-1F, -2F, -2F, 4, 8, 4, scaleFactor + armInflation);
+            clothingArmL.addBox(-1F, -2F, -2F, 4, 6, 4, scaleFactor + armInflation);
+            clothingForeArmR.setTextureOffset(16, 22);
+            clothingForeArmR.addBox(-3F, 0F, -2F, 4, 2, 4, scaleFactor + armInflation);
+            clothingForeArmL.setTextureOffset(16, 22);
+            clothingForeArmL.addBox(-1F, 0F, -2F, 4, 2, 4, scaleFactor + armInflation);
         }
     }
 
@@ -358,9 +376,13 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         clothingBody.setTextureOffset(16, 0);
         clothingBody.addBox(-4F, -12F, -2F, 8, 12, 4, scaleFactor + 0.3F);
         clothingArmR.setTextureOffset(16, 16);
-        clothingArmR.addBox(-3F, -2F, -2F, 4, 8, 4, scaleFactor + 0.3F);
+        clothingArmR.addBox(-3F, -2F, -2F, 4, 6, 4, scaleFactor + 0.3F);
         clothingArmL.setTextureOffset(16, 16);
-        clothingArmL.addBox(-1F, -2F, -2F, 4, 8, 4, scaleFactor + 0.3F);
+        clothingArmL.addBox(-1F, -2F, -2F, 4, 6, 4, scaleFactor + 0.3F);
+        clothingForeArmR.setTextureOffset(16, 22);
+        clothingForeArmR.addBox(-3F, 0F, -2F, 4, 2, 4, scaleFactor + 0.3F);
+        clothingForeArmL.setTextureOffset(16, 22);
+        clothingForeArmL.addBox(-1F, 0F, -2F, 4, 2, 4, scaleFactor + 0.3F);
     }
 
     private void configureCloak() {
@@ -374,12 +396,6 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         clothingHead.rotateAngleX = source.bipedHead.rotateAngleX;
         clothingHead.rotateAngleY = source.bipedHead.rotateAngleY;
         clothingHead.rotateAngleZ = source.bipedHead.rotateAngleZ;
-        clothingArmR.rotateAngleX = source.bipedRightArm.rotateAngleX;
-        clothingArmR.rotateAngleY = source.bipedRightArm.rotateAngleY;
-        clothingArmR.rotateAngleZ = source.bipedRightArm.rotateAngleZ;
-        clothingArmL.rotateAngleX = source.bipedLeftArm.rotateAngleX;
-        clothingArmL.rotateAngleY = source.bipedLeftArm.rotateAngleY;
-        clothingArmL.rotateAngleZ = source.bipedLeftArm.rotateAngleZ;
         clothingLegR.rotateAngleX = source.bipedRightLeg.rotateAngleX;
         clothingLegR.rotateAngleY = source.bipedRightLeg.rotateAngleY;
         clothingLegR.rotateAngleZ = source.bipedRightLeg.rotateAngleZ;
@@ -389,6 +405,12 @@ public class ModelBipedClothingAdapter extends ModelBiped {
         if (source instanceof net.gobbob.mobends.client.model.entity.ModelBendsPlayer) {
             net.gobbob.mobends.client.model.entity.ModelBendsPlayer bm =
                 (net.gobbob.mobends.client.model.entity.ModelBendsPlayer) source;
+            // sync() copies rotateAngle + rotation/pre_rotation smooth vectors so attack
+            // animations that set pre_rotation (e.g. Animation_Attack_Punch) are applied.
+            clothingArmR.sync((net.gobbob.mobends.client.model.ModelRendererBends) bm.bipedRightArm);
+            clothingArmL.sync((net.gobbob.mobends.client.model.ModelRendererBends) bm.bipedLeftArm);
+            clothingForeArmR.sync((net.gobbob.mobends.client.model.ModelRendererBends) bm.bipedRightForeArm);
+            clothingForeArmL.sync((net.gobbob.mobends.client.model.ModelRendererBends) bm.bipedLeftForeArm);
             clothingForeLegR.rotateAngleX = bm.bipedRightForeLeg.rotateAngleX;
             clothingForeLegR.rotateAngleY = bm.bipedRightForeLeg.rotateAngleY;
             clothingForeLegR.rotateAngleZ = bm.bipedRightForeLeg.rotateAngleZ;
