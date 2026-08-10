@@ -46,6 +46,8 @@ public class MobendsClothingRenderer {
 
     private TFCPCapeRenderer tfcpCapeRenderer;
     private com.dunk.tfc.Render.Models.ModelCloak tfcCloakModel;
+    private CoatSkirtModel coatSkirt;
+    private CoatSkirtModel robeSkirt;
     private static long lastDiagMs = 0L;
     private static Field extraEquipField;
     private static boolean extraEquipFieldResolved;
@@ -61,6 +63,8 @@ public class MobendsClothingRenderer {
         } catch (Throwable t) {
             MoBendsTFCPCompat.LOG.warn("MobendsClothingRenderer: could not init TFC+ ModelCloak", t);
         }
+        coatSkirt = new CoatSkirtModel(7F, 0.6F, 0F, true);
+        robeSkirt = new CoatSkirtModel(10F, 0.6F, 0.05F, false);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -135,7 +139,9 @@ public class MobendsClothingRenderer {
 
             ModelBipedClothingAdapter adapter = adapterCache.get(type);
             if (adapter == null) {
-                adapter = new ModelBipedClothingAdapter(type, clothingScale(type));
+                boolean sleeveless = type == ModelBipedClothingAdapter.ClothingType.SHIRT
+                    && isSleevelessShirt(item.getItem());
+                adapter = new ModelBipedClothingAdapter(type, clothingScale(type), sleeveless);
                 adapterCache.put(type, adapter);
             }
 
@@ -167,6 +173,11 @@ public class MobendsClothingRenderer {
             } else {
                 GL11.glPushMatrix();
                 adapter.render((EntityLivingBase) player, 0F, 0F, 0F, 0F, 0F, scale);
+                if (type == ModelBipedClothingAdapter.ClothingType.COAT && coatSkirt != null) {
+                    coatSkirt.render(player, sourceModel, scale);
+                } else if (type == ModelBipedClothingAdapter.ClothingType.ROBE && robeSkirt != null) {
+                    robeSkirt.render(player, sourceModel, scale);
+                }
                 GL11.glPopMatrix();
             }
             GL11.glColor3f(1F, 1F, 1F);
@@ -293,8 +304,17 @@ public class MobendsClothingRenderer {
             case BOOTS: return 0.6F;
             case FULLBOOTS: return 0.5F;
             case SANDALS: return 0.4F;
+            case COAT:
+            case ROBE: return 0.6F;
             default: return 0.5F;
         }
+    }
+
+    private boolean isSleevelessShirt(net.minecraft.item.Item item) {
+        return item == com.dunk.tfc.api.TFCItems.woolSleevelessShirt
+            || item == com.dunk.tfc.api.TFCItems.cottonSleevelessShirt
+            || item == com.dunk.tfc.api.TFCItems.linenSleevelessShirt
+            || item == com.dunk.tfc.api.TFCItems.silkSleevelessShirt;
     }
 
     private boolean isShorts(net.minecraft.item.Item item) {

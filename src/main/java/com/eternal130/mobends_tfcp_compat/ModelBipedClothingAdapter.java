@@ -36,6 +36,7 @@ public class ModelBipedClothingAdapter extends ModelBiped {
 
     private final ClothingType type;
     private final float scaleFactor;
+    private boolean sleeveless;
     private ModelRenderer clothingBody;
     private ModelRenderer clothingHead;
     private ScaledModelRenderer hatBase;
@@ -61,9 +62,14 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     private ModelRenderer clothingSkirt;
 
     public ModelBipedClothingAdapter(ClothingType type, float scaleFactor) {
+        this(type, scaleFactor, false);
+    }
+
+    public ModelBipedClothingAdapter(ClothingType type, float scaleFactor, boolean sleeveless) {
         super(0.0F, 0.0F, 64, 32);
         this.type = type;
         this.scaleFactor = scaleFactor;
+        this.sleeveless = sleeveless;
         this.isChild = false;
         configureGeometry();
     }
@@ -215,14 +221,19 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     }
 
     private void configureShirtOrCoat() {
-        float pad = (type == ClothingType.COAT) ? 0.5F : 0.0F;
-        float armPad = (type == ClothingType.COAT) ? 0.3F : 0.0F;
+        // COAT: body total 0.9 (±4.9), sleeves total 0.9 — sits just inside the stock
+        // Mo'Bends armor chestplate body (±5.0) so the armor plate stays visible.
+        float bodyInflation = (type == ClothingType.COAT) ? 0.3F : 0.0F;
+        float armInflation = (type == ClothingType.COAT) ? 0.3F : 0.0F;
         clothingBody.setTextureOffset(16, 0);
-        clothingBody.addBox(-4F, -12F, -2F, 8, 12, 4, scaleFactor + pad);
-        clothingArmR.setTextureOffset(16, 16);
-        clothingArmR.addBox(-3F, -2F, -2F, 4, 6, 4, scaleFactor + armPad);
-        clothingArmL.setTextureOffset(16, 16);
-        clothingArmL.addBox(-1F, -2F, -2F, 4, 6, 4, scaleFactor + armPad);
+        clothingBody.addBox(-4F, -12F, -2F, 8, 12, 4, scaleFactor + bodyInflation);
+        if (!sleeveless) {
+            // 8-high sleeve = TFC+ ModelShirt arm (y 12..20 in MoBends frame).
+            clothingArmR.setTextureOffset(16, 16);
+            clothingArmR.addBox(-3F, -2F, -2F, 4, 8, 4, scaleFactor + armInflation);
+            clothingArmL.setTextureOffset(16, 16);
+            clothingArmL.addBox(-1F, -2F, -2F, 4, 8, 4, scaleFactor + armInflation);
+        }
     }
 
     private void configurePants(boolean shorts) {
@@ -345,13 +356,11 @@ public class ModelBipedClothingAdapter extends ModelBiped {
 
     private void configureRobe() {
         clothingBody.setTextureOffset(16, 0);
-        clothingBody.addBox(-4F, -12F, -2F, 8, 12, 4, scaleFactor + 0.6F);
+        clothingBody.addBox(-4F, -12F, -2F, 8, 12, 4, scaleFactor + 0.3F);
         clothingArmR.setTextureOffset(16, 16);
-        clothingArmR.addBox(-3F, -2F, -2F, 4, 6, 4, scaleFactor + 0.3F);
+        clothingArmR.addBox(-3F, -2F, -2F, 4, 8, 4, scaleFactor + 0.3F);
         clothingArmL.setTextureOffset(16, 16);
-        clothingArmL.addBox(-1F, -2F, -2F, 4, 6, 4, scaleFactor + 0.3F);
-        clothingSkirt.setTextureOffset(16, 0);
-        clothingSkirt.addBox(-5F, 0F, -3F, 10, 10, 6, scaleFactor + 0.8F);
+        clothingArmL.addBox(-1F, -2F, -2F, 4, 8, 4, scaleFactor + 0.3F);
     }
 
     private void configureCloak() {
