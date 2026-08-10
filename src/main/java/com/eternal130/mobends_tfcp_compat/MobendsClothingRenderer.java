@@ -350,6 +350,7 @@ public class MobendsClothingRenderer {
             case CLOTH_HAT: return ModelBipedClothingAdapter.ClothingType.CLOTH_HAT;
             case STRAW_HAT: return ModelBipedClothingAdapter.ClothingType.STRAW_HAT;
             case COAT:
+            case THINCOAT:
             case HEAVYCOAT:
             case HEAVIERCOAT: return ModelBipedClothingAdapter.ClothingType.COAT;
             case ROBE: return ModelBipedClothingAdapter.ClothingType.ROBE;
