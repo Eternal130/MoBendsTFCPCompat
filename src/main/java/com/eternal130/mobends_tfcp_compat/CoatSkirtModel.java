@@ -156,10 +156,6 @@ public class CoatSkirtModel {
         float hipX = source.bipedRightLeg.rotationPointX + 6 + scaleFactor;
         float hipY = source.bipedRightLeg.rotationPointY;
         float hipZ = source.bipedRightLeg.rotationPointZ + 2 + scaleFactor;
-        if (entity.isSneaking()) {
-            hipY += 2F;
-            hipZ += -8F;
-        }
 
         PositionTextureVertex rightFrontOuterLeg = v(0.25F + hipX + (float) rightLegOuterVector.xCoord,
             hipY + (float) rightLegOuterVector.yCoord,
@@ -184,10 +180,6 @@ public class CoatSkirtModel {
         hipX = source.bipedLeftLeg.rotationPointX - 7 + scaleFactor;
         hipY = source.bipedLeftLeg.rotationPointY;
         hipZ = source.bipedLeftLeg.rotationPointZ + 2 + scaleFactor;
-        if (entity.isSneaking()) {
-            hipY += 2F;
-            hipZ += -8F;
-        }
 
         float leftBackYd = 0;
         float rightBackYd = 0;

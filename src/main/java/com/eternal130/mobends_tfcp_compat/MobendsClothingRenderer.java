@@ -48,6 +48,7 @@ public class MobendsClothingRenderer {
     private com.dunk.tfc.Render.Models.ModelCloak tfcCloakModel;
     private CoatSkirtModel coatSkirt;
     private CoatSkirtModel robeSkirt;
+    private CoatSkirtModel skirt;
     private static long lastDiagMs = 0L;
     private static Field extraEquipField;
     private static boolean extraEquipFieldResolved;
@@ -65,6 +66,7 @@ public class MobendsClothingRenderer {
         }
         coatSkirt = new CoatSkirtModel(7F, 0.6F, 0F, true);
         robeSkirt = new CoatSkirtModel(10F, 0.6F, 0.05F, false);
+        skirt = new CoatSkirtModel(10F, 0.1F, 0F, false);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -137,22 +139,27 @@ public class MobendsClothingRenderer {
                 continue;
             }
 
-            ModelBipedClothingAdapter adapter = adapterCache.get(type);
-            if (adapter == null) {
-                boolean sleeveless = type == ModelBipedClothingAdapter.ClothingType.SHIRT
-                    && isSleevelessShirt(item.getItem());
-                adapter = new ModelBipedClothingAdapter(type, clothingScale(type), sleeveless);
-                adapterCache.put(type, adapter);
+            ModelBipedClothingAdapter adapter = null;
+            if (type != ModelBipedClothingAdapter.ClothingType.SKIRT) {
+                adapter = adapterCache.get(type);
+                if (adapter == null) {
+                    boolean sleeveless = type == ModelBipedClothingAdapter.ClothingType.SHIRT
+                        && isSleevelessShirt(item.getItem());
+                    adapter = new ModelBipedClothingAdapter(type, clothingScale(type), sleeveless);
+                    adapterCache.put(type, adapter);
+                }
             }
 
             if (diag && type == ModelBipedClothingAdapter.ClothingType.SHIRT) {
                 logAngles("source", sourceModel);
             }
 
-            adapter.syncFromModelBiped(sourceModel);
+            if (adapter != null) {
+                adapter.syncFromModelBiped(sourceModel);
 
-            if (diag && type == ModelBipedClothingAdapter.ClothingType.SHIRT) {
-                logAngles("adapter", adapter);
+                if (diag && type == ModelBipedClothingAdapter.ClothingType.SHIRT) {
+                    logAngles("adapter", adapter);
+                }
             }
 
             int textureVariant = 0;
@@ -170,6 +177,10 @@ public class MobendsClothingRenderer {
             applyClothingTint(item);
             if (type == ModelBipedClothingAdapter.ClothingType.CLOAK && tfcpCapeRenderer != null) {
                 renderCloak(player, e, sourceModel, ie, item, textureVariant);
+            } else if (type == ModelBipedClothingAdapter.ClothingType.SKIRT && skirt != null) {
+                GL11.glPushMatrix();
+                skirt.render(player, sourceModel, scale);
+                GL11.glPopMatrix();
             } else {
                 GL11.glPushMatrix();
                 adapter.render((EntityLivingBase) player, 0F, 0F, 0F, 0F, 0F, scale);
@@ -342,6 +353,7 @@ public class MobendsClothingRenderer {
             case HEAVYCOAT:
             case HEAVIERCOAT: return ModelBipedClothingAdapter.ClothingType.COAT;
             case ROBE: return ModelBipedClothingAdapter.ClothingType.ROBE;
+            case SKIRT: return ModelBipedClothingAdapter.ClothingType.SKIRT;
             case CLOAK: return ModelBipedClothingAdapter.ClothingType.CLOAK;
             default: return null;
         }

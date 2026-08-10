@@ -31,7 +31,7 @@ public class ModelBipedClothingAdapter extends ModelBiped {
     public enum ClothingType {
         SHIRT, PANTS, SHORTS, SOCKS, BOOTS, FULLBOOTS, SANDALS,
         CLOTH_HAT, STRAW_HAT, STRAW_HAT2,
-        FUR_HAT_BEAR, FUR_HAT_WOLF, COAT, ROBE, CLOAK, NULL;
+        FUR_HAT_BEAR, FUR_HAT_WOLF, COAT, ROBE, SKIRT, CLOAK, NULL;
     }
 
     private final ClothingType type;
