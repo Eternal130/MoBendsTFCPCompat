@@ -27,7 +27,7 @@
 # 产物：build/libs/mobends_tfcp_compat-<version>.jar（Java 8 字节码）
 ```
 
-`libs/` 目录存放 Mo'Bends 和 TFC+ 的开发（deobf）jar 用于编译。若要适配更新版本的目标 mod，请替换这里的 jar。
+Mo'Bends 和 TFC+ 在构建时从 [CurseForge 通过 CurseMaven](https://www.cursemaven.com/) 拉取（无需认证），所以无需任何额外配置 —— 直接构建即可。若要适配更新版本的目标 mod，请在 `dependencies.gradle` 中把 CurseMaven 坐标换成新的 CurseForge 文件 ID。
 
 ## 许可证
 

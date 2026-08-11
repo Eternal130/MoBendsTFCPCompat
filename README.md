@@ -27,7 +27,7 @@ Drop `mobends_tfcp_compat-<version>.jar` into your `mods/` folder alongside Mo'B
 # Output: build/libs/mobends_tfcp_compat-<version>.jar (Java 8 bytecode)
 ```
 
-The `libs/` directory holds the Mo'Bends and TFC+ dev (deobf) jars for compilation. Update them if you target newer versions of either mod.
+Mo'Bends and TFC+ are pulled from [CurseForge via CurseMaven](https://www.cursemaven.com/) at build time (no auth needed), so there's nothing to set up — just run the build. If you want to target newer versions of either mod, update the CurseMaven coordinates in `dependencies.gradle` to the new CurseForge file IDs.
 
 ## License
 

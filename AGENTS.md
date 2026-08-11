@@ -28,8 +28,7 @@ Client-side Minecraft 1.7.10 Forge mod that makes TFC+ clothing (shirts, pants, 
 ├── src/main/resources/
 │   ├── mcmod.info                    # Forge mod metadata (tokens substituted at build)
 │   └── mixins.mobends_tfcp_compat.json  # Mixin config: required, JAVA_8, defaultRequire:1, 2 mixins
-├── libs/                             # Mo'Bends + TFC+ dev (deobf) jars — compile only
-├── dependencies.gradle               # devOnlyNonPublishable(rfg.deobf(...)) for both jars
+├── dependencies.gradle               # CurseMaven coords (rfg.deobf) for Mo'Bends + TFC+
 ├── gradle.properties                 # modId, modGroup, usesMixins=true, mixinsPackage=mixin
 ├── build.gradle.kts                  # single line: gtnhconvention plugin
 ├── settings.gradle.kts               # GTNH Maven for RetroFuturaGradle
@@ -56,7 +55,7 @@ Client-side Minecraft 1.7.10 Forge mod that makes TFC+ clothing (shirts, pants, 
 | Change whether TFC+'s clothing pass runs | `mixin/MixinRenderClothing.java` | HEAD-cancellable `@Inject` — drop this and TFC+ renders double (clothes-on-clothes z-fight) |
 | Change leggings-model restore | `mixin/MixinPlayerRenderHandler.java` | `@Inject RETURN` on `onPlayerRenderTick` re-caches a `ModelBendsPlayer(0.5F)` after TFC+ clobbers `modelArmor` |
 | Add a Mixin class | `mixin/` + register in `mixins.mobends_tfcp_compat.json` | `mixinsPackage` is `mixin` per gradle.properties |
-| Update target mod version | `dependencies.gradle` + replace jar in `libs/` | Then re-verify both Mixin `target`/`method` strings + `mapClothingType`/`configureXxx` against new TFC+ bytecode |
+| Update target mod version | `dependencies.gradle` + bump CurseMaven fileId | Then re-verify both Mixin `target`/`method` strings + `mapClothingType`/`configureXxx` against new TFC+ bytecode |
 | Mod ID / package constants | `MoBendsTFCPCompat.java` | `MODID`, `MODID_MOBENDS="mobends"`, `MODID_TFCP="terrafirmacraftplus"` |
 | Why the fix is needed | `README.md` §"Cause" + §"How it works" | Frame-mismatch reasoning + hierarchy-mirroring rationale — READ BEFORE EDITING THE RENDERER OR ADAPTER |
 
@@ -129,7 +128,7 @@ Client-side Minecraft 1.7.10 Forge mod that makes TFC+ clothing (shirts, pants, 
 
 ## UNIQUE STYLES
 
-- **`devOnlyNonPublishable(rfg.deobf(project.files("libs/...")))`** — Mo'Bends and TFC+ are compile-only local dev jars, deobfuscated at configure time by RFG, never published as Maven deps. Don't switch to `implementation`/`compileOnly` — they won't deobf.
+- **`devOnlyNonPublishable(rfg.deobf("curse.maven:<slug>-<projectId>:<fileId>"))`** — Mo'Bends and TFC+ are pulled from CurseForge via CurseMaven (the repo is auto-registered by `includeWellKnownRepositories=true` in gradle.properties). `rfg.deobf` runs the obfuscated CurseForge jars through the MCP stable-12 deobf pipeline so we compile against deobfuscated names. Don't switch to `implementation`/`compileOnly` — they won't deobf. Never commit the jars to `libs/` — it risks CurseForge ToS / license violations and the directory is gitignored.
 - **`Tags.VERSION` is a generated class** (`generateGradleTokenClass` in gradle.properties) substituted at build; never hand-edit, never hardcode a version in `@Mod`.
 - **`disableSpotless = true` / `disableCheckstyle = true`** in gradle.properties — formatting is intentionally relaxed; do not "tidy" unrelated files.
 - **`.editorconfig`** mandates 4-space indent for `.java`, 2-space for JSON/`mcmod.info`/`.md`, and `trim_trailing_whitespace = false` for `.md` (preserve markdown hard line breaks).
@@ -155,7 +154,7 @@ Client-side Minecraft 1.7.10 Forge mod that makes TFC+ clothing (shirts, pants, 
 ## NOTES
 
 - **No tests exist.** codegraph flags the entire render/adapter/mixin surface as untested. Verification is behavioral: launch `runClient`, equip each TFC+ clothing piece (shirt, pants, shorts, socks, boots, sandals, cloth/straw/straw2/fur hats, coat, robe, skirt, cloak), walk/run/fall/fly in F5, check both local-player and remote-player views.
-- **Dependency jars in `libs/` are checked into the repo** (`mobends-1.1.0-dev.jar`, `terrafirmacraftplus-0.89.1-dev.jar`). Bumping a target mod version means replacing the jar AND re-validating: both Mixin `target`/`method` strings, `mapClothingType`'s TFC+ ClothingType set, and every `configureXxx` against the new TFC+ model bytecode.
+- **Mo'Bends and TFC+ are pulled from CurseMaven, not committed jars.** Bumping a target mod version means looking up the new CurseForge file, copying its fileId into `dependencies.gradle` (coord `curse.maven:<slug>-<projectId>:<fileId>`), and re-validating: both Mixin `target`/`method` strings, `mapClothingType`'s TFC+ ClothingType set, and every `configureXxx` against the new TFC+ model bytecode. Never commit mod jars to `libs/` — gitignored, license risk.
 - **Mixin config `minVersion: 0.8.3-GTNH`** and `compatibilityLevel: JAVA_8` — this assumes UniMixins (ships with GTNH, Angelica, RPL). Don't lower `minVersion` to stock Sponge Mixin; the GTNH-specific refmap behavior is relied upon.
 - **Two Mixins, two different jobs.** `MixinRenderClothing` cancels (disable TFC+ pass); `MixinPlayerRenderHandler` restores (re-cache MoBends armor model). They are independent — one can be removed without breaking the other's compile, but removing either reintroduces a distinct visual bug.
 - **Adapter cache is keyed by `ClothingType`, not by item.** A shirt and a thin shirt share one `SHIRT` adapter instance — geometry differences (sleeveless) are decided at adapter construction via `isSleevelessShirt(item)`, which means the FIRST shirt seen seeds the cached adapter. If TFC+ adds a shirt that needs different geometry beyond sleeveless, the cache key must widen.
