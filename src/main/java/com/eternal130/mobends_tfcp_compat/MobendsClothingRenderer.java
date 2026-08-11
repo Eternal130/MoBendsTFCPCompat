@@ -249,7 +249,21 @@ public class MobendsClothingRenderer {
         GL11.glPushMatrix();
         sourceModel.bipedBody.postRender(scale);
         GL11.glTranslatef(0.0F, -12.5F * scale, 0.0F);
-        GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+
+        double d3 = player.field_71091_bM + (player.field_71094_bP - player.field_71091_bM) * partialTicks - (player.prevPosX + (player.posX - player.prevPosX) * partialTicks);
+        double d4 = player.field_71096_bN + (player.field_71095_bQ - player.field_71096_bN) * partialTicks - (player.prevPosY + (player.posY - player.prevPosY) * partialTicks);
+        double d0 = player.field_71097_bO + (player.field_71085_bR - player.field_71097_bO) * partialTicks - (player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks);
+        float f4 = player.prevRenderYawOffset + (player.renderYawOffset - player.prevRenderYawOffset) * partialTicks;
+        double d1 = (double) net.minecraft.util.MathHelper.sin(f4 * (float)Math.PI / 180.0F);
+        double d2 = (double)(-net.minecraft.util.MathHelper.cos(f4 * (float)Math.PI / 180.0F));
+        float f5 = (float)d4 * 10.0F;
+        if (f5 < -6.0F) f5 = -6.0F;
+        if (f5 > 32.0F) f5 = 32.0F;
+        float f6 = (float)(d3 * d1 + d0 * d2) * 100.0F;
+        float f7 = (float)(d3 * d2 - d0 * d1) * 100.0F;
+        if (f6 < 0.0F) f6 = 0.0F;
+        float f8 = player.prevCameraYaw + (player.cameraYaw - player.prevCameraYaw) * partialTicks;
+        f5 += net.minecraft.util.MathHelper.sin((player.prevDistanceWalkedModified + (player.distanceWalkedModified - player.prevDistanceWalkedModified) * partialTicks) * 6.0F) * 32.0F * f8;
 
         net.gobbob.mobends.data.Data_Player capeData = net.gobbob.mobends.data.Data_Player.get(player.getEntityId());
         boolean flyingSprint = player.capabilities.isFlying && player.isSprinting();
@@ -257,8 +271,12 @@ public class MobendsClothingRenderer {
             capeData.setCapeWaveSpeed(4.0F);
         } else {
             capeData.setCapeWaveSpeed(1.0F);
+            GL11.glRotatef(6.0F + f6 / 2.0F + f5, 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(f7 / 2.0F, 0.0F, 0.0F, 1.0F);
+            GL11.glRotatef(-f7 / 2.0F, 0.0F, 1.0F, 0.0F);
         }
 
+        GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
         tfcpCapeRenderer.applyAnimation(capeData);
         tfcpCapeRenderer.render(scale);
         GL11.glPopMatrix();
