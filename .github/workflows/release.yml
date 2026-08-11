@@ -37,8 +37,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       # setupDecompWorkspace downloads the deobf MCP mappings used by RFG.
-      # Both Mo'Bends and TFC+ dev jars are committed under libs/, so no
-      # external auth or secret is needed to build.
+      # Mo'Bends and TFC+ are pulled from CurseMaven at build time
+      # (anonymous, no auth/secret needed) — see dependencies.gradle.
       - name: Build
         run: |
           ./gradlew setupDecompWorkspace --no-daemon
