@@ -34,8 +34,16 @@
  * For more details, see https://docs.gradle.org/8.0.1/userguide/java_library_plugin.html#sec_java_library_configurations_graph
  */
 dependencies {
-    // Mo'Bends and TFC+ are required at runtime but not published as Maven dependencies.
-    // Their dev (deobf) jars are in ./libs so we can compile against their public APIs.
-    devOnlyNonPublishable(rfg.deobf(project.files("libs/mobends-1.1.0-dev.jar")))
-    devOnlyNonPublishable(rfg.deobf(project.files("libs/terrafirmacraftplus-0.89.1-dev.jar")))
+    // Mo'Bends and TFC+ are required at compile/runtime but not published as Maven deps.
+    // They are pulled from CurseForge via CurseMaven (auto-added by
+    // includeWellKnownRepositories in gradle.properties). `rfg.deobf(...)` runs
+    // the obfuscated CurseForge jars through the MCP stable-12 deobf pipeline so
+    // we compile against deobfuscated names — same as the old libs/ dev jars.
+    //
+    // CurseMaven coords: curse.maven:<slug>-<projectId>:<fileId>
+    //   slug + projectId uniquely identify the project; fileId pins the exact upload.
+    // To bump a target mod: look up the new file on CurseForge, copy its fileId,
+    // and update the coordinate here (the file comment records what it is).
+    devOnlyNonPublishable(rfg.deobf("curse.maven:mo-bends-reforged-1618481:8484765"))
+    devOnlyNonPublishable(rfg.deobf("curse.maven:terrafirmacraftplus-287053:3779225"))
 }

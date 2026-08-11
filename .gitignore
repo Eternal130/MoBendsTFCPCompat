@@ -41,3 +41,8 @@ layout.json
 
 # Game runtime logs (any location in the repo)
 *.log
+
+# Local mod dependency jars — never commit. Dependencies come from
+# CurseMaven via dependencies.gradle (rfg.deobf("curse.maven:...")). Committing
+# third-party mod jars risks CurseForge ToS / license violations.
+/libs/
