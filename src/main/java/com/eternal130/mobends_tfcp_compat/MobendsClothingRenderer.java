@@ -49,7 +49,6 @@ public class MobendsClothingRenderer {
     private CoatSkirtModel coatSkirt;
     private CoatSkirtModel robeSkirt;
     private CoatSkirtModel skirt;
-    private static long lastDiagMs = 0L;
     private static Field extraEquipField;
     private static boolean extraEquipFieldResolved;
 
@@ -70,21 +69,6 @@ public class MobendsClothingRenderer {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onPre(RenderPlayerEvent.Pre e) {
-        long now = System.currentTimeMillis();
-        if (now - lastDiagMs > 200 && e.entityPlayer.equals(Minecraft.getMinecraft().thePlayer)) {
-            ModelBiped m = e.renderer.modelBipedMain;
-            System.out.println("[Adapter-Diag] PRE-MOBENDS-MAIN"
-                + " cls=" + (m == null ? "null" : m.getClass().getSimpleName())
-                + " body=" + rad2deg(m, "body")
-                + " armR=" + rad2deg(m, "armR")
-                + " armL=" + rad2deg(m, "armL")
-                + " legR=" + rad2deg(m, "legR")
-                + " legL=" + rad2deg(m, "legL"));
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onSpecialsPre(RenderPlayerEvent.Specials.Pre e) {
         if (tfcpCapeRenderer == null) return;
         if (hasCloak(e.entityPlayer)) {
@@ -102,13 +86,6 @@ public class MobendsClothingRenderer {
 
         ModelBiped sourceModel = e.renderer.modelBipedMain;
         float scale = 0.0625F;
-
-        boolean diag = false;
-        long now = System.currentTimeMillis();
-        if (now - lastDiagMs > 200 && player.equals(Minecraft.getMinecraft().thePlayer)) {
-            lastDiagMs = now;
-            diag = true;
-        }
 
         for (ItemStack item : clothing) {
             if (item == null) continue;
@@ -150,16 +127,8 @@ public class MobendsClothingRenderer {
                 }
             }
 
-            if (diag && type == ModelBipedClothingAdapter.ClothingType.SHIRT) {
-                logAngles("source", sourceModel);
-            }
-
             if (adapter != null) {
                 adapter.syncFromModelBiped(sourceModel);
-
-                if (diag && type == ModelBipedClothingAdapter.ClothingType.SHIRT) {
-                    logAngles("adapter", adapter);
-                }
             }
 
             int textureVariant = 0;
@@ -192,23 +161,6 @@ public class MobendsClothingRenderer {
                 GL11.glPopMatrix();
             }
             GL11.glColor3f(1F, 1F, 1F);
-
-            if (diag && type == ModelBipedClothingAdapter.ClothingType.SHIRT) {
-                System.out.println("[Adapter-Diag] rendered shirt"
-                    + " body.show=" + adapter.bipedBody.showModel
-                    + " body.children=" + (adapter.bipedBody.childModels != null ? adapter.bipedBody.childModels.size() : -1)
-                    + " body.rot=" + String.format("(%.1f,%.1f,%.1f)",
-                        adapter.bipedBody.rotateAngleX * 180f / (float) Math.PI,
-                        adapter.bipedBody.rotateAngleY * 180f / (float) Math.PI,
-                        adapter.bipedBody.rotateAngleZ * 180f / (float) Math.PI));
-            }
-            if (diag && type == ModelBipedClothingAdapter.ClothingType.PANTS) {
-                System.out.println("[Adapter-Diag] pants"
-                    + " legR.rp=(" + adapter.bipedRightLeg.rotationPointX + "," + adapter.bipedRightLeg.rotationPointY + "," + adapter.bipedRightLeg.rotationPointZ + ")"
-                    + " legR.show=" + adapter.bipedRightLeg.showModel
-                    + " legR.children=" + (adapter.bipedRightLeg.childModels != null ? adapter.bipedRightLeg.childModels.size() : -1)
-                    + " legR.rotX=" + String.format("%.1f", adapter.bipedRightLeg.rotateAngleX * 180f / (float) Math.PI));
-            }
         }
     }
 
@@ -292,33 +244,6 @@ public class MobendsClothingRenderer {
             }
         }
         return false;
-    }
-
-    private static String rad2deg(ModelBiped m, String part) {
-        net.minecraft.client.model.ModelRenderer r;
-        if (part.equals("body")) r = m.bipedBody;
-        else if (part.equals("armR")) r = m.bipedRightArm;
-        else if (part.equals("armL")) r = m.bipedLeftArm;
-        else if (part.equals("legR")) r = m.bipedRightLeg;
-        else if (part.equals("legL")) r = m.bipedLeftLeg;
-        else if (part.equals("head")) r = m.bipedHead;
-        else return "?";
-        if (r == null) return "null";
-        return String.format("(%.1f,%.1f,%.1f)",
-            r.rotateAngleX * 180f / (float) Math.PI,
-            r.rotateAngleY * 180f / (float) Math.PI,
-            r.rotateAngleZ * 180f / (float) Math.PI);
-    }
-
-    private static void logAngles(String tag, ModelBiped m) {
-        if (m == null) { System.out.println("[Adapter-Diag] " + tag + " null"); return; }
-        System.out.println("[Adapter-Diag] " + tag
-            + " head=" + rad2deg(m, "head")
-            + " body=" + rad2deg(m, "body")
-            + " armR=" + rad2deg(m, "armR")
-            + " armL=" + rad2deg(m, "armL")
-            + " legR=" + rad2deg(m, "legR")
-            + " legL=" + rad2deg(m, "legL"));
     }
 
     /**
